@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oyun Puanı Tahmin Edici</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.95);
+        }
+        .card-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 1.5rem;
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .result-card {
+            margin-top: 2rem;
+        }
+        .rating-display {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 2rem 0;
+        }
+        .spinner-border {
+            color: #667eea;
+        }
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .row {
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header text-center">
+                        <h2><i class="fas fa-gamepad me-2"></i>Oyun Puanı Tahmin Edici</h2>
+                        <p class="mb-0">Oyun özelliklerini girerek tahmini puanı öğrenin</p>
+                    </div>
+                    <div class="card-body p-4">
+                        <form id="predictionForm" method="POST" action="/predict">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="ageGroup" class="form-label">Hedef Yaş Grubu</label>
+                                        <select class="form-select" id="ageGroup" name="Age_Group_Targeted" required>
+                                            <option value="">Seçiniz</option>
+                                            <option value="Kids">Çocuklar</option>
+                                            <option value="Teens">Gençler</option>
+                                            <option value="Adults">Yetişkinler</option>
+                                            <option value="All Ages">Tüm Yaşlar</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="price" class="form-label">Fiyat (TL)</label>
+                                        <input type="number" class="form-control" id="price" name="Price" step="0.01" min="0" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="platform" class="form-label">Platform</label>
+                                        <select class="form-select" id="platform" name="Platform" required>
+                                            <option value="">Seçiniz</option>
+                                            <option value="PC">PC</option>
+                                            <option value="PlayStation">PlayStation</option>
+                                            <option value="Xbox">Xbox</option>
+                                            <option value="Nintendo Switch">Nintendo Switch</option>
+                                            <option value="Mobile">Mobil</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="specialDevice" class="form-label">Özel Cihaz Gerektirir</label>
+                                        <select class="form-select" id="specialDevice" name="Requires_Special_Device" required>
+                                            <option value="">Seçiniz</option>
+                                            <option value="Yes">Evet</option>
+                                            <option value="No">Hayır</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="genre" class="form-label">Tür</label>
+                                        <select class="form-select" id="genre" name="Genre" required>
+                                            <option value="">Seçiniz</option>
+                                            <option value="Action">Aksiyon</option>
+                                            <option value="Adventure">Macera</option>
+                                            <option value="Fighting">Dövüş</option>
+                                            <option value="Party">Parti</option>
+                                            <option value="Puzzle">Bulmaca</option>
+                                            <option value="RPG">RPG</option>
+                                            <option value="Shooter">Nişancı</option>
+                                            <option value="Simulation">Simülasyon</option>
+                                            <option value="Sports">Spor</option>
+                                            <option value="Strategy">Strateji</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="multiplayer" class="form-label">Çok Oyunculu</label>
+                                        <select class="form-select" id="multiplayer" name="Multiplayer" required>
+                                            <option value="">Seçiniz</option>
+                                            <option value="Yes">Evet</option>
+                                            <option value="No">Hayır</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="gameLength" class="form-label">Oyun Süresi (Saat)</label>
+                                        <input type="number" class="form-control" id="gameLength" name="Game_Length_Hours" step="0.1" min="0" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="graphicsQuality" class="form-label">Grafik Kalitesi</label>
+                                        <select class="form-select" id="graphicsQuality" name="Graphics_Quality" required>
+                                            <option value="">Seçiniz</option>
+                                            <option value="Low">Düşük</option>
+                                            <option value="Medium">Orta</option>
+                                            <option value="High">Yüksek</option>
+                                            <option value="Ultra">Ultra</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="soundtrackQuality" class="form-label">Müzik Kalitesi</label>
+                                        <select class="form-select" id="soundtrackQuality" name="Soundtrack_Quality" required>
+                                            <option value="">Seçiniz</option>
+                                            <option value="Poor">Zayıf</option>
+                                            <option value="Average">Orta</option>
+                                            <option value="Good">İyi</option>
+                                            <option value="Excellent">Mükemmel</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="storyQuality" class="form-label">Hikaye Kalitesi</label>
+                                        <select class="form-select" id="storyQuality" name="Story_Quality" required>
+                                            <option value="">Seçiniz</option>
+                                            <option value="Poor">Zayıf</option>
+                                            <option value="Average">Orta</option>
+                                            <option value="Good">İyi</option>
+                                            <option value="Excellent">Mükemmel</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="gameMode" class="form-label">Oyun Modu</label>
+                                        <select class="form-select" id="gameMode" name="Game_Mode" required>
+                                            <option value="">Seçiniz</option>
+                                            <option value="Offline">Çevrimdışı</option>
+                                            <option value="Online">Çevrimiçi</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="minPlayers" class="form-label">Minimum Oyuncu Sayısı</label>
+                                        <input type="number" class="form-control" id="minPlayers" name="Min_Number_of_Players" min="1" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-magic me-2"></i>Tahmin Et
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="loading" id="loading">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Yükleniyor...</span>
+                            </div>
+                            <p class="mt-2">Tahmin hesaplanıyor...</p>
+                        </div>
+
+                        {% if result %}
+                        <div class="result-card" id="resultCard">
+                            <div class="alert alert-success">
+                                <h4 class="alert-heading"><i class="fas fa-star me-2"></i>Tahmin Sonucu</h4>
+                                <div class="rating-display" id="ratingDisplay">{{ result }}/10</div>
+                                {% if message %}
+                                <p class="mb-0" id="resultMessage">{{ message }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if error %}
+                        <div class="alert alert-danger" id="errorAlert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span id="errorMessage">{{ error }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', function(e) {
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            
+            // Hide previous results and errors
+            const resultCard = document.getElementById('resultCard');
+            const errorAlert = document.getElementById('errorAlert');
+            if (resultCard) resultCard.style.display = 'none';
+            if (errorAlert) errorAlert.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
